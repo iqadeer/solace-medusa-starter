@@ -1,7 +1,7 @@
 'use client'
 
-import { useEffect, useMemo, useRef, useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useRef, useState } from 'react'
+import { useParams, useRouter } from 'next/navigation'
 
 import { addToCart } from '@lib/data/cart'
 import { useCartStore } from '@lib/store/useCartStore'
@@ -42,9 +42,25 @@ export default function ProductActions({
   disabled,
 }: ProductActionsProps) {
   const { openCartDropdown } = useCartStore()
+  const router = useRouter()
   const actionsRef = useRef<HTMLDivElement>(null)
   const [qty, setQty] = useState(1)
-  const [options, setOptions] = useState<Record<string, string | undefined>>({})
+  const [options, setOptions] = useState<Record<string, string | undefined>>(
+    () => {
+      if (!product.variants || product.variants.length === 0) {
+        return {}
+      }
+
+      const variant =
+        product.variants.length === 1
+          ? product.variants[0]
+          : [...product.variants].sort((a, b) =>
+              (a.title || '').localeCompare(b.title || '')
+            )[0]
+
+      return optionsAsKeymap(variant.options) ?? {}
+    }
+  )
   const [isAdding, setIsAdding] = useState(false)
   const countryCode = useParams().countryCode as string
 
@@ -67,6 +83,7 @@ export default function ProductActions({
         quantity: qty,
         countryCode,
       })
+      router.refresh()
     } catch (error) {
       console.error(error)
       toast('error', 'Could not add product to cart')
@@ -80,19 +97,16 @@ export default function ProductActions({
     }
   }
 
-  const selectedVariant = useMemo(() => {
-    if (!product.variants || product.variants.length === 0) {
-      return
-    }
-
-    return product.variants.find((v) => {
-      const variantOptions = optionsAsKeymap(v.options)
-      return isEqual(variantOptions, options)
-    })
-  }, [product.variants, options])
+  const selectedVariant =
+    product.variants?.length === 0
+      ? undefined
+      : product.variants.find((v) => {
+          const variantOptions = optionsAsKeymap(v.options)
+          return isEqual(variantOptions, options)
+        })
 
   // check if the selected variant is in stock
-  const inStock = useMemo(() => {
+  const inStock = (() => {
     // If we don't manage inventory, we can always add to cart
     if (selectedVariant && !selectedVariant.manage_inventory) {
       return true
@@ -113,10 +127,10 @@ export default function ProductActions({
 
     // Otherwise, we can't add to cart
     return false
-  }, [selectedVariant])
+  })()
 
   // Get the max quantity
-  const maxQuantity = useMemo(() => {
+  const maxQuantity = (() => {
     if (!selectedVariant || !cartItems) return 10
 
     const cartQuantity =
@@ -135,24 +149,7 @@ export default function ProductActions({
     }
 
     return 10 - cartQuantity
-  }, [selectedVariant, cartItems])
-
-  // Preselect the options
-  useEffect(() => {
-    if (product.variants?.length === 1) {
-      const variantOptions = optionsAsKeymap(product.variants[0].options)
-      setOptions(variantOptions ?? {})
-    } else if (product.variants && product.variants.length > 1) {
-      const sortedVariants = [...product.variants].sort((a, b) =>
-        (a.title || '').localeCompare(b.title || '')
-      )
-      const firstAlphabeticalVariant = sortedVariants[0]
-      if (firstAlphabeticalVariant) {
-        const variantOptions = optionsAsKeymap(firstAlphabeticalVariant.options)
-        setOptions(variantOptions ?? {})
-      }
-    }
-  }, [product.variants])
+  })()
 
   return (
     <>

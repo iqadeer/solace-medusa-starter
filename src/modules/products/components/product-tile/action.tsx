@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { useParams } from 'next/navigation'
+import { useParams, useRouter } from 'next/navigation'
 
 import { addToCartCheapestVariant } from '@lib/data/cart'
 import { useCartStore } from '@lib/store/useCartStore'
@@ -19,6 +19,7 @@ export function ProductActions({
 }) {
   const [isAddingToCart, setIsAddingToCart] = useState(false)
   const { openCartDropdown } = useCartStore()
+  const router = useRouter()
   const countryCode = useParams().countryCode as string
 
   const handleAddToCart = async () => {
@@ -32,6 +33,8 @@ export function ProductActions({
       })
 
       if (result.success) {
+        router.refresh()
+
         setTimeout(() => {
           openCartDropdown()
 
