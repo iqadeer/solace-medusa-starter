@@ -15,7 +15,7 @@ const Hero = ({ data }: { data: HeroBanner }) => {
     <>
       <Box className="h-[168px] max-h-[368px] w-full small:h-[368px] 2xl:h-[468px] 2xl:max-h-[468px]">
         <Image
-          src={bannerImage.url}
+          src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${bannerImage.url}`}
           alt={bannerImage.alternativeText ?? 'Banner image'}
           className="h-full w-full object-cover"
           width={1000}
