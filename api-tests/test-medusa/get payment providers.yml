@@ -1,0 +1,21 @@
+info:
+  name: get payment providers
+  type: http
+
+http:
+  method: GET
+  url: http://localhost:9000/store/payment-providers?region_id=reg_01M06J1K60AJCBK8KY78Y0GSKF
+  headers:
+    - name: x-publishable-api-key
+      value: pk_a73ffe630739241016b9518385dc6fba7f884681ee6aac33537541953f915dc0
+  params:
+    - name: region_id
+      value: reg_01M06J1K60AJCBK8KY78Y0GSKF
+      type: query
+  auth: inherit
+
+settings:
+  encodeUrl: true
+  timeout: 0
+  followRedirects: true
+  maxRedirects: 5
