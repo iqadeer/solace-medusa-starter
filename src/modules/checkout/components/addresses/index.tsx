@@ -127,6 +127,7 @@ const Addresses = ({
               })
             : Promise.resolve(),
         ])
+        router.refresh()
       }
     } catch (error) {
       console.error('Error:', error)

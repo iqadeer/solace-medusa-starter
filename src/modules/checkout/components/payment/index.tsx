@@ -9,7 +9,6 @@ import React, {
 } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
-import { RadioGroup } from '@headlessui/react'
 import { isStripe as isStripeFunc, paymentInfoMap } from '@lib/constants'
 import { initiatePaymentSession } from '@lib/data/cart'
 import { cn } from '@lib/util/cn'
@@ -19,6 +18,7 @@ import { StripeContext } from '@modules/checkout/components/payment-wrapper'
 import { Box } from '@modules/common/components/box'
 import { Button } from '@modules/common/components/button'
 import { Heading } from '@modules/common/components/heading'
+import { RadioGroupRoot } from '@modules/common/components/radio'
 import { Stepper } from '@modules/common/components/stepper'
 import { Text } from '@modules/common/components/text'
 import { StripeIcon } from '@modules/common/icons'
@@ -35,14 +35,12 @@ const Payment = ({
   const activeSession = cart?.payment_collection?.payment_sessions?.find(
     (paymentSession: any) => paymentSession.status === 'pending'
   )
+  const selectedPaymentMethod = activeSession?.provider_id ?? ''
 
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [cardBrand, setCardBrand] = useState<string | null>(null)
   const [cardComplete, setCardComplete] = useState(false)
-  const [selectedPaymentMethod, setSelectedPaymentMethod] = useState(
-    activeSession?.provider_id ?? ''
-  )
 
   const searchParams = useSearchParams()
   const router = useRouter()
@@ -93,7 +91,7 @@ const Payment = ({
   }
 
   const handlePaymentMethodChange = async (value: string) => {
-    setSelectedPaymentMethod(value)
+    setError(null)
     await handleSubmit(value)
   }
 
@@ -104,6 +102,7 @@ const Payment = ({
       await initiatePaymentSession(cart, {
         provider_id: paymentMethodId,
       })
+      router.refresh()
     } catch (err: any) {
       setError(err.message)
     } finally {
@@ -113,22 +112,16 @@ const Payment = ({
 
   // Set payment method if there is only one available
   useEffect(() => {
-    setError(null)
-
     if (
       isOpen &&
       availablePaymentMethods.length === 1 &&
       !selectedPaymentMethod
     ) {
       const singlePaymentMethod = availablePaymentMethods[0].id
-      handlePaymentMethodChange(singlePaymentMethod)
+      handleSubmit(singlePaymentMethod)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [isOpen, availablePaymentMethods, selectedPaymentMethod])
-
-  useEffect(() => {
-    setError(null)
-  }, [isOpen])
 
   return (
     <Box className="bg-primary p-5">
@@ -163,9 +156,9 @@ const Payment = ({
         <Box className={isOpen ? 'block' : 'hidden'}>
           {!paidByGiftcard && availablePaymentMethods?.length && (
             <>
-              <RadioGroup
+              <RadioGroupRoot
                 value={selectedPaymentMethod}
-                onChange={handlePaymentMethodChange}
+                onValueChange={handlePaymentMethodChange}
               >
                 {availablePaymentMethods
                   .sort((a, b) => {
@@ -181,7 +174,7 @@ const Payment = ({
                       />
                     )
                   })}
-              </RadioGroup>
+              </RadioGroupRoot>
               {isStripe && stripeReady && (
                 <div className="mt-5 transition-all duration-150 ease-in-out">
                   <Text className="mb-3 text-md text-basic-primary">

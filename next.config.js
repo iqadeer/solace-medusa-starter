@@ -10,6 +10,7 @@ const nextConfig = {
   images: {
     // TO DO: Fix this in the future
     unoptimized: true,
+    qualities: [50, 75],
     remotePatterns: [
       {
         protocol: 'http',

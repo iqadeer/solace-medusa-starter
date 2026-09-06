@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 import { deleteLineItem } from '@lib/data/cart'
 import { Spinner } from '@medusajs/icons'
@@ -20,16 +21,19 @@ const DeleteButton = ({
   variant?: 'tonal' | 'text' | 'filled' | 'ghost' | 'destructive' | 'icon'
 }) => {
   const [isDeleting, setIsDeleting] = useState(false)
-
+  const router = useRouter()
   const handleDelete = async (id: string) => {
     setIsDeleting(true)
 
     await deleteLineItem(id)
+      .then(() => {
+        toast('success', 'Product was removed from cart.')
+        router.refresh()
+      })
       .catch((err) => {
         toast('error', err)
       })
       .finally(() => {
-        toast('success', 'Product was removed from cart.')
         setIsDeleting(false)
       })
   }

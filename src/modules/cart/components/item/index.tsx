@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { useRouter } from 'next/navigation'
 
 import { updateLineItem } from '@lib/data/cart'
 import { cn } from '@lib/util/cn'
@@ -13,6 +14,7 @@ import LineItemOptions from '@modules/common/components/line-item-options'
 import LineItemPrice from '@modules/common/components/line-item-price'
 import LocalizedClientLink from '@modules/common/components/localized-client-link'
 import { Text } from '@modules/common/components/text'
+import { toast } from '@modules/common/components/toast'
 import { Spinner } from '@modules/common/icons'
 import Thumbnail from '@modules/products/components/thumbnail'
 
@@ -24,6 +26,7 @@ type ItemProps = {
 }
 
 const Item = ({ item, type = 'full' }: ItemProps) => {
+  const router = useRouter()
   const [updating, setUpdating] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
@@ -37,6 +40,10 @@ const Item = ({ item, type = 'full' }: ItemProps) => {
       lineId: item.id,
       quantity,
     })
+      .then(() => {
+        router.refresh()
+        toast('success', 'Product quantity updated.')
+      })
       .catch((err) => {
         setError(err.message)
       })

@@ -1,9 +1,8 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { usePathname, useRouter, useSearchParams } from 'next/navigation'
 
-import { RadioGroup } from '@headlessui/react'
 import { setShippingMethod } from '@lib/data/cart'
 import { cn } from '@lib/util/cn'
 import { convertToLocale } from '@lib/util/money'
@@ -38,9 +37,17 @@ const Shipping: React.FC<ShippingProps> = ({
 
   const isOpen = searchParams.get('step') === 'delivery'
 
+  const [selectedShippingMethodId, setSelectedShippingMethodId] = useState(
+    cart.shipping_methods?.at(-1)?.shipping_option_id ?? ''
+  )
+
+  // const selectedShippingMethod = availableShippingMethods?.find(
+  //   // To do: remove the previously selected shipping method instead of using the last one
+  //   (method) => method.id === cart.shipping_methods?.at(-1)?.shipping_option_id
+  // )
+
   const selectedShippingMethod = availableShippingMethods?.find(
-    // To do: remove the previously selected shipping method instead of using the last one
-    (method) => method.id === cart.shipping_methods?.at(-1)?.shipping_option_id
+    (method) => method.id === selectedShippingMethodId
   )
 
   const handleEdit = () => {
@@ -52,19 +59,24 @@ const Shipping: React.FC<ShippingProps> = ({
   }
 
   const set = async (id: string) => {
+    setError(null)
     setIsLoading(true)
+    setSelectedShippingMethodId(id)
+
     await setShippingMethod({ cartId: cart.id, shippingMethodId: id })
+      .then(() => {
+        router.refresh()
+      })
       .catch((err) => {
         setError(err.message)
+        setSelectedShippingMethodId(
+          cart.shipping_methods?.at(-1)?.shipping_option_id ?? ''
+        )
       })
       .finally(() => {
         setIsLoading(false)
       })
   }
-
-  useEffect(() => {
-    setError(null)
-  }, [isOpen])
 
   return (
     <Box className="bg-primary p-5">
@@ -105,33 +117,32 @@ const Shipping: React.FC<ShippingProps> = ({
       </Box>
       {isOpen ? (
         <Box data-testid="delivery-options-container">
-          <RadioGroup value={selectedShippingMethod?.id || ''} onChange={set}>
+          <div>{selectedShippingMethodId} here is the selected one</div>
+
+          <RadioGroupRoot value={selectedShippingMethodId} onValueChange={set}>
             {availableShippingMethods?.map((option) => {
+              const checked = option.id === selectedShippingMethodId
+
               return (
-                <RadioGroup.Option
+                <label
                   key={option.id}
-                  value={option.id}
+                  htmlFor={option.id}
                   data-testid="delivery-option-radio"
                   className={cn(
                     'flex cursor-pointer flex-row items-center justify-between gap-1 border p-2 !pr-4 text-basic-primary transition-all duration-200',
                     {
-                      'border-action-primary':
-                        option.id === selectedShippingMethod?.id,
+                      'border-action-primary': checked,
                     }
                   )}
                 >
                   <Box className="flex w-full items-center gap-x-2">
-                    <RadioGroupRoot className="m-3">
-                      <RadioGroupItem
-                        id={option.id}
-                        value={option.id}
-                        checked={option.id === selectedShippingMethod?.id}
-                      >
-                        <RadioGroupIndicator />
-                      </RadioGroupItem>
-                    </RadioGroupRoot>
+                    <RadioGroupItem id={option.id} value={option.id}>
+                      <RadioGroupIndicator />
+                    </RadioGroupItem>
+
                     <Box className="flex w-full flex-col gap-1 small:flex-row small:items-center small:justify-between">
                       <span className="text-lg">{option.name}</span>
+
                       <span className="justify-self-end text-md">
                         {convertToLocale({
                           amount: option.amount,
@@ -140,10 +151,10 @@ const Shipping: React.FC<ShippingProps> = ({
                       </span>
                     </Box>
                   </Box>
-                </RadioGroup.Option>
+                </label>
               )
             })}
-          </RadioGroup>
+          </RadioGroupRoot>
           <ErrorMessage
             error={error}
             data-testid="delivery-option-error-message"
