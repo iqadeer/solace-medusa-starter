@@ -11,9 +11,10 @@ export function BlogTile({ post }: { post: BlogPost }) {
     <Box className="flex min-w-40 flex-col overflow-hidden bg-secondary">
       <Box className="h-[224px] overflow-hidden large:h-[280px]">
         <LocalizedClientLink href={`/blog/${post.Slug}`}>
+          <div>{post.FeaturedImage.url}</div>
           <Image
             className="h-full w-full object-cover object-center"
-            src={post.FeaturedImage.url}
+            src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${post.FeaturedImage.url}`}
             alt={post.FeaturedImage.alternativeText ?? 'Blog post image'}
             width={600}
             height={600}

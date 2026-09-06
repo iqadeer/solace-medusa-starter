@@ -72,7 +72,7 @@ export default async function BlogPostTemplate({
         >
           <Box className="relative h-[400px] w-full">
             <Image
-              src={article.FeaturedImage.url}
+              src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${article.FeaturedImage.url}`}
               alt={`${article.FeaturedImage.alternativeText ? article.FeaturedImage.alternativeText : article.Title}`}
               fill
               className="w-full object-cover"
