@@ -13,13 +13,12 @@ const Hero = ({ data }: { data: HeroBanner }) => {
 
   return (
     <>
-      <Box className="h-[168px] max-h-[368px] w-full small:h-[368px] 2xl:h-[468px] 2xl:max-h-[468px]">
+      <Box className="relative h-[168px] max-h-[368px] w-full small:h-[368px] 2xl:h-[468px] 2xl:max-h-[468px]">
         <Image
           src={`${process.env.NEXT_PUBLIC_STRAPI_URL}${bannerImage.url}`}
           alt={bannerImage.alternativeText ?? 'Banner image'}
-          className="h-full w-full object-cover"
-          width={1000}
-          height={600}
+          fill
+          className="object-cover"
           priority
         />
       </Box>
